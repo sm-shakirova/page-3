@@ -1,6 +1,6 @@
 import {
   getRandomNumber,
-  makeArray,
+  makeArrayFromRange,
   addInitialZeros,
   getRandomArrayElement,
   getRandomSubArray
@@ -45,7 +45,7 @@ const PHOTOS = [
 
 const Price = {
   MIN: 100,
-  MAX: 10000000,
+  MAX: 100000,
 };
 const Rooms = {
   MIN: 1,
@@ -57,20 +57,20 @@ const Guests = {
 };
 const Location = {
   X: {
-    MIN: 35.65000,
-    MAX: 35.70000,
+    MIN: 35.65,
+    MAX: 35.7,
   },
   Y: {
-    MIN: 139.70000,
-    MAX: 139.80000,
+    MIN: 139.7,
+    MAX: 139.8,
   },
   ACCURACY: 5,
 }
 
 
 function createOffer(id) {
-  const LOCATION_X = getRandomNumber(Location.X.MIN, Location.X.MAX, Location.ACCURACY);
-  const LOCATION_Y = getRandomNumber(Location.Y.MIN, Location.Y.MAX, Location.ACCURACY);
+  const locationX = getRandomNumber(Location.X.MIN, Location.X.MAX, Location.ACCURACY);
+  const locationY = getRandomNumber(Location.Y.MIN, Location.Y.MAX, Location.ACCURACY);
 
   return {
     author: {
@@ -78,7 +78,7 @@ function createOffer(id) {
     },
     offer: {
       title: getRandomArrayElement(TITLES),
-      address: `${LOCATION_X}, ${LOCATION_Y}`,
+      address: `${locationX}, ${locationY}`,
       price: getRandomNumber(Price.MIN, Price.MAX),
       type: getRandomArrayElement(TYPES),
       rooms: getRandomNumber(Rooms.MIN, Rooms.MAX),
@@ -90,18 +90,18 @@ function createOffer(id) {
       photos: getRandomSubArray(PHOTOS),
     },
     location: {
-      x: LOCATION_X,
-      y: LOCATION_Y,
+      x: locationX,
+      y: locationY,
     },
   };
 }
 
 
-function createAllOffers() {
-  return makeArray(1, OFFERS_COUNT)
+function createOffers() {
+  return makeArrayFromRange(1, OFFERS_COUNT)
     .map((id) => addInitialZeros(id, String(OFFERS_COUNT).length))
     .map((id) => createOffer(id));
 }
 
 
-export {createAllOffers};
+export {createOffers};

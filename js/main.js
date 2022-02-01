@@ -1,3 +1,6 @@
-import {createAllOffers} from './data.js';
+import {createOffers} from './data.js';
+import {renderCard} from './card.js'
 
-createAllOffers();
+const offers = createOffers();
+renderCard(offers[0]);
+

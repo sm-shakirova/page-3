@@ -18,30 +18,30 @@ function getRandomNumber(min, max, accuracy = 0) {
       throw new Error('The range is too small');
     }
 
-    const MIN_DIGITS = String(min).split('.')[1];
-    const MAX_DIGITS = String(max).split('.')[1];
-    const MIN_LENGTH = Math.min(MIN_DIGITS.length, MAX_DIGITS.length, accuracy);
+    const minDigits = String(min).split('.')[1];
+    const maxDigits = String(max).split('.')[1];
+    const minLength = Math.min(minDigits.length, maxDigits.length, accuracy);
 
-    for (let i = 0; i < MIN_LENGTH; i++) {
-      if (MAX_DIGITS[i] - MIN_DIGITS[i] < 0) {
+    for (let i = 0; i < minLength; i++) {
+      if (maxDigits[i] - minDigits[i] < 0) {
         throw new Error('The range is too small');
-      } else if (MAX_DIGITS[i] - MIN_DIGITS[i] >= 1) {
+      } else if (maxDigits[i] - minDigits[i] >= 1) {
         break
       }
 
-      if (i === MIN_LENGTH - 1 && MAX_DIGITS[i] - MIN_DIGITS[i] < 1) {
+      if (i === minDigits - 1 && maxDigits[i] - minDigits[i] < 1) {
         throw new Error('The range is too small');
       }
     }
   }
 
-  const COEFFICIENT = 10 ** accuracy;
-  max = Math.floor(max * COEFFICIENT) / COEFFICIENT;
-  min = Math.ceil(min * COEFFICIENT) / COEFFICIENT;
+  const coefficient = 10 ** accuracy;
+  max = Math.floor(max * coefficient) / coefficient;
+  min = Math.ceil(min * coefficient) / coefficient;
   return Number((Math.random() * (max - min) + min).toFixed(accuracy));
 }
 
-function makeArray(start, stop) {
+function makeArrayFromRange(start, stop) {
   let array = [];
   for (let i = start; i <= stop; i++) array.push(i);
   return array;
@@ -66,13 +66,13 @@ function shuffle(iterable) {
 }
 
 function getRandomSubArray(array) {
-  const RANDOM_LENGTH = getRandomNumber(0, array.length - 1)
-  return shuffle(array).slice(RANDOM_LENGTH);
+  const randomLength = getRandomNumber(0, array.length - 1)
+  return shuffle(array).slice(randomLength);
 }
 
 export {
   getRandomNumber,
-  makeArray,
+  makeArrayFromRange,
   addInitialZeros,
   getRandomArrayElement,
   getRandomSubArray
