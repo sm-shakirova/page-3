@@ -1,15 +1,11 @@
 const cardTemplate = document.querySelector('#card').content;
 const popup = cardTemplate.querySelector('.popup');
-const container = document.querySelector('#map-canvas');
 
-function convertType(type) {
-  switch (type) {
-    case 'palace': return 'Дворец';
-    case 'flat': return 'Квартира';
-    case 'house': return 'Дом';
-    case 'bungalow': return 'Бунгало';
-    default: return undefined;
-  }
+const TYPE_TRANSLATION = {
+  'palace': 'Дворец',
+  'flat': 'Квартира',
+  'house': 'Дом',
+  'bungalow': 'Бунгало',
 }
 
 function renderFeature(name) {
@@ -44,7 +40,7 @@ function renderCard(data) {
   data.offer.title ? title.textContent = data.offer.title : title.remove();
   data.offer.address ? address.textContent = data.offer.address : address.remove();
   data.offer.price ? price.textContent = `${data.offer.price} ₽/ночь` : price.remove();
-  data.offer.type ? type.textContent = convertType(data.offer.type) : type.remove();
+  data.offer.type ? type.textContent = TYPE_TRANSLATION[data.offer.type] : type.remove();
   data.offer.description ? description.textContent = data.offer.description : description.remove();
   data.offer.rooms && data.offer.guests ?
     capacity.textContent = `${data.offer.rooms} комнаты для ${data.offer.guests} гостей` :
@@ -69,7 +65,7 @@ function renderCard(data) {
     photosContainer.appendChild(photosListFragment);
   } else photosContainer.remove();
 
-  container.appendChild(newCard);
+  return newCard;
 }
 
 export {renderCard};

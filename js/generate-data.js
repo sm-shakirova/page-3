@@ -41,7 +41,6 @@ const PHOTOS = [
   'http://o0.github.io/assets/images/tokyo/hotel3.jpg',
 ];
 
-
 const Price = {
   MIN: {
     BUNGALOW: 0,
@@ -119,4 +118,4 @@ function createOffers() {
     .map((id) => createOffer(id));
 }
 
-export {createOffers, Price, getMinPrice};
+export {createOffers, Price, getMinPrice, Location};
