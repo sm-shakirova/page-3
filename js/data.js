@@ -6,7 +6,6 @@ import {
   getRandomSubArray
 } from './util.js';
 
-
 const OFFERS_COUNT = 10;
 const AVATAR_LINK_TEMPLATE = 'img/avatars/user{{xx}}.png';
 const TITLES = [
@@ -44,8 +43,13 @@ const PHOTOS = [
 
 
 const Price = {
-  MIN: 100,
-  MAX: 100000,
+  MIN: {
+    BUNGALOW: 0,
+    FLAT: 1000,
+    HOUSE: 5000,
+    PALACE: 10000,
+  },
+  MAX: 1000000,
 };
 const Rooms = {
   MIN: 1,
@@ -67,27 +71,40 @@ const Location = {
   ACCURACY: 5,
 }
 
+function getMinPrice(type) {
+  switch (type) {
+    case 'bungalow': return Price.MIN.BUNGALOW;
+    case 'flat': return Price.MIN.FLAT;
+    case 'house': return Price.MIN.HOUSE;
+    case 'palace': return Price.MIN.PALACE;
+    default: return 0;
+  }
+}
 
 function createOffer(id) {
   const locationX = getRandomNumber(Location.X.MIN, Location.X.MAX, Location.ACCURACY);
   const locationY = getRandomNumber(Location.Y.MIN, Location.Y.MAX, Location.ACCURACY);
+  const time = getRandomArrayElement(TIME_OPTIONS);
+  const type = getRandomArrayElement(TYPES);
+  const minPrice = getMinPrice(type);
+  const maxPrice = Price.MAX;
 
   return {
     author: {
       avatar: AVATAR_LINK_TEMPLATE.replace('{{xx}}', id),
     },
     offer: {
+      type: type,
+      checkin: time,
+      checkout: time,
       title: getRandomArrayElement(TITLES),
       address: `${locationX}, ${locationY}`,
-      price: getRandomNumber(Price.MIN, Price.MAX),
-      type: getRandomArrayElement(TYPES),
+      price: getRandomNumber(minPrice, maxPrice),
       rooms: getRandomNumber(Rooms.MIN, Rooms.MAX),
       guests: getRandomNumber(Guests.MIN, Guests.MAX),
-      checkin: getRandomArrayElement(TIME_OPTIONS),
-      checkout: getRandomArrayElement(TIME_OPTIONS),
       features: getRandomSubArray(FEATURES),
-      description: getRandomArrayElement(DESCRIPTIONS),
       photos: getRandomSubArray(PHOTOS),
+      description: getRandomArrayElement(DESCRIPTIONS),
     },
     location: {
       x: locationX,
@@ -96,12 +113,10 @@ function createOffer(id) {
   };
 }
 
-
 function createOffers() {
   return makeArrayFromRange(1, OFFERS_COUNT)
     .map((id) => addInitialZeros(id, String(OFFERS_COUNT).length))
     .map((id) => createOffer(id));
 }
 
-
-export {createOffers};
+export {createOffers, Price, getMinPrice};

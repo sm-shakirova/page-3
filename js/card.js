@@ -1,5 +1,3 @@
-import {createOffers} from './data.js';
-
 const cardTemplate = document.querySelector('#card').content;
 const popup = cardTemplate.querySelector('.popup');
 const container = document.querySelector('#map-canvas');
@@ -42,26 +40,34 @@ function renderCard(data) {
   const photosContainer = newCard.querySelector('.popup__photos');
   const photoTemplate = photosContainer.querySelector('.popup__photo');
 
-  avatar.src = data.author.avatar;
-  title.textContent = data.offer.title;
-  address.textContent = data.offer.address;
-  price.textContent = `${data.offer.price} ₽/ночь`;
-  type.textContent = convertType(data.offer.type);
-  capacity.textContent = `${data.offer.rooms} комнаты для ${data.offer.guests} гостей`;
-  time.textContent = `Заезд после ${data.offer.checkin}, выезд до ${data.offer.checkout}`;
-  description.textContent = data.offer.description;
+  data.author.avatar ? avatar.src = data.author.avatar : avatar.remove();
+  data.offer.title ? title.textContent = data.offer.title : title.remove();
+  data.offer.address ? address.textContent = data.offer.address : address.remove();
+  data.offer.price ? price.textContent = `${data.offer.price} ₽/ночь` : price.remove();
+  data.offer.type ? type.textContent = convertType(data.offer.type) : type.remove();
+  data.offer.description ? description.textContent = data.offer.description : description.remove();
+  data.offer.rooms && data.offer.guests ?
+    capacity.textContent = `${data.offer.rooms} комнаты для ${data.offer.guests} гостей` :
+    capacity.remove();
+  data.offer.checkin && data.offer.checkout ?
+    time.textContent = `Заезд после ${data.offer.checkin}, выезд до ${data.offer.checkout}` :
+    time.remove();
 
-  featuresContainer.innerHTML = '';
   const features = data.offer.features;
-  const featuresListFragment = document.createDocumentFragment();
-  features.forEach((feature) => featuresListFragment.appendChild(renderFeature(feature)));
-  featuresContainer.appendChild(featuresListFragment);
+  if (features.length !== 0) {
+    while (featuresContainer.firstChild) featuresContainer.removeChild(featuresContainer.firstChild);
+    const featuresListFragment = document.createDocumentFragment();
+    features.forEach((feature) => featuresListFragment.appendChild(renderFeature(feature)));
+    featuresContainer.appendChild(featuresListFragment);
+  } else featuresContainer.remove();
 
-  photosContainer.innerHTML = '';
   const photos = data.offer.photos;
-  const photosListFragment = document.createDocumentFragment();
-  photos.forEach((photo) => photosListFragment.appendChild(renderPhoto(photo, photoTemplate)));
-  photosContainer.appendChild(photosListFragment);
+  if (photos.length !== 0) {
+    while (photosContainer.firstChild) photosContainer.removeChild(photosContainer.firstChild);
+    const photosListFragment = document.createDocumentFragment();
+    photos.forEach((photo) => photosListFragment.appendChild(renderPhoto(photo, photoTemplate)));
+    photosContainer.appendChild(photosListFragment);
+  } else photosContainer.remove();
 
   container.appendChild(newCard);
 }
