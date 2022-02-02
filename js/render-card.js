@@ -1,12 +1,12 @@
-const cardTemplate = document.querySelector('#card').content;
-const popup = cardTemplate.querySelector('.popup');
-
 const TYPE_TRANSLATION = {
   'palace': 'Дворец',
   'flat': 'Квартира',
   'house': 'Дом',
   'bungalow': 'Бунгало',
-}
+};
+
+const cardTemplate = document.querySelector('#card').content;
+const popup = cardTemplate.querySelector('.popup');
 
 function renderFeature(name) {
   let newFeature = document.createElement('li');

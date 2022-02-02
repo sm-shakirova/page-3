@@ -118,4 +118,4 @@ function createOffers() {
     .map((id) => createOffer(id));
 }
 
-export {createOffers, Price, getMinPrice, Location};
+export {createOffers, getMinPrice, Location};

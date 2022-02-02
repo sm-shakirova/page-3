@@ -87,5 +87,10 @@ offers.forEach((offer) => {
 
   marker
     .addTo(map)
-    .bindPopup(renderCard(offer));
+    .bindPopup(
+      renderCard(offer),
+      {
+        keepInView: true,
+      },
+    );
 });
