@@ -6,7 +6,6 @@ import {
   getRandomSubArray
 } from './util.js';
 
-const OFFERS_COUNT = 10;
 const AVATAR_LINK_TEMPLATE = 'img/avatars/user{{xx}}.png';
 const TITLES = [
   'Уютная квартирка в центре города',
@@ -112,10 +111,10 @@ function createOffer(id) {
   };
 }
 
-function createOffers() {
-  return makeArrayFromRange(1, OFFERS_COUNT)
-    .map((id) => addInitialZeros(id, String(OFFERS_COUNT).length))
+function createOffers(count) {
+  return makeArrayFromRange(1, count)
+    .map((id) => addInitialZeros(id, String(count).length))
     .map((id) => createOffer(id));
 }
 
-export {createOffers, getMinPrice, Location};
+export {createOffers, getMinPrice};

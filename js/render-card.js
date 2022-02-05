@@ -3,10 +3,14 @@ const TYPE_TRANSLATION = {
   'flat': 'Квартира',
   'house': 'Дом',
   'bungalow': 'Бунгало',
+  'hotel': 'Отель',
 };
 
-const cardTemplate = document.querySelector('#card').content;
-const popup = cardTemplate.querySelector('.popup');
+const cardTemplate = document.querySelector('#card').content.querySelector('.popup');
+
+function getTypeTranslation(type) {
+  return TYPE_TRANSLATION[type] ? TYPE_TRANSLATION[type] : type;
+}
 
 function renderFeature(name) {
   let newFeature = document.createElement('li');
@@ -22,7 +26,7 @@ function renderPhoto(src, template) {
 }
 
 function renderCard(data) {
-  const newCard = popup.cloneNode(true);
+  const newCard = cardTemplate.cloneNode(true);
 
   const avatar = newCard.querySelector('.popup__avatar');
   const title = newCard.querySelector('.popup__title');
@@ -37,10 +41,12 @@ function renderCard(data) {
   const photoTemplate = photosContainer.querySelector('.popup__photo');
 
   data.author.avatar ? avatar.src = data.author.avatar : avatar.remove();
+  avatar.onerror = () => avatar.src = 'img/avatars/default.png';
+
   data.offer.title ? title.textContent = data.offer.title : title.remove();
   data.offer.address ? address.textContent = data.offer.address : address.remove();
   data.offer.price ? price.textContent = `${data.offer.price} ₽/ночь` : price.remove();
-  data.offer.type ? type.textContent = TYPE_TRANSLATION[data.offer.type] : type.remove();
+  data.offer.type ? type.textContent = getTypeTranslation(data.offer.type) : type.remove();
   data.offer.description ? description.textContent = data.offer.description : description.remove();
   data.offer.rooms && data.offer.guests ?
     capacity.textContent = `${data.offer.rooms} комнаты для ${data.offer.guests} гостей` :
@@ -49,17 +55,19 @@ function renderCard(data) {
     time.textContent = `Заезд после ${data.offer.checkin}, выезд до ${data.offer.checkout}` :
     time.remove();
 
-  const features = data.offer.features;
-  if (features.length !== 0) {
-    while (featuresContainer.firstChild) featuresContainer.removeChild(featuresContainer.firstChild);
+  if (data.offer.features && data.offer.features.length !== 0) {
+    const features = data.offer.features;
+
+    featuresContainer.innerHTML = '';
     const featuresListFragment = document.createDocumentFragment();
     features.forEach((feature) => featuresListFragment.appendChild(renderFeature(feature)));
     featuresContainer.appendChild(featuresListFragment);
   } else featuresContainer.remove();
 
-  const photos = data.offer.photos;
-  if (photos.length !== 0) {
-    while (photosContainer.firstChild) photosContainer.removeChild(photosContainer.firstChild);
+  if (data.offer.photos && data.offer.photos !== 0) {
+    const photos = data.offer.photos;
+
+    photosContainer.innerHTML = '';
     const photosListFragment = document.createDocumentFragment();
     photos.forEach((photo) => photosListFragment.appendChild(renderPhoto(photo, photoTemplate)));
     photosContainer.appendChild(photosListFragment);

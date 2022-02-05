@@ -1,4 +1,6 @@
 import {getMinPrice} from './generate-data.js';
+import {resetPage} from './util.js';
+import {showSuccessPopup, showErrorPopup} from './popup.js';
 
 const TitleLength = {
   MIN: 30,
@@ -27,7 +29,7 @@ function disableForm(form, className) {
 }
 
 // функция для активного состояния формы
-function activateForm(form, className) {
+function enableForm(form, className) {
   form.classList.remove(`${className}--disabled`);
   for (let child of form.children) child.disabled = false;
 }
@@ -42,7 +44,6 @@ typeSelect.onchange = () => {
 timeInSelect.onchange = () => timeOutSelect.value = timeInSelect.value;
 timeOutSelect.onchange = () => timeInSelect.value = timeOutSelect.value;
 
-
 // синхронизация количества комнат и количества гостей
 function checkGuestsNumber(options) {
   while (guestsNumberSelect.firstChild) guestsNumberSelect.removeChild(guestsNumberSelect.firstChild);
@@ -54,11 +55,12 @@ function checkGuestsNumber(options) {
     }
   }
 }
+
 const options = guestsNumberSelect.querySelectorAll('option');
 checkGuestsNumber(options);
 roomsNumberSelect.onchange = () => checkGuestsNumber(options);
 
-// валидация при вводе
+// валидация
 titleField.oninput = () => {
   const valueLength = titleField.value.length;
   if (valueLength < TitleLength.MIN) {
@@ -85,4 +87,26 @@ priceField.oninput = () => {
   priceField.reportValidity();
 };
 
-export {disableForm, activateForm, form};
+// отправка формы
+form.onsubmit = (evt) => {
+  evt.preventDefault();
+
+  fetch(
+    'https://23.javascript.pages.academy/keksobookinggg',
+    {
+      method: 'POST',
+      body: new FormData(evt.target),
+    },
+  ).then((response) => {
+    if (!response.ok) throw new Error('Не удалось отправить форму');
+  }).then(() => resetPage())
+    .then(() => showSuccessPopup())
+    .catch(() => showErrorPopup());
+};
+
+form.onreset = (evt) => {
+  evt.preventDefault();
+  resetPage();
+};
+
+export {disableForm, enableForm};

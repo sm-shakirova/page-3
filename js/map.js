@@ -1,27 +1,30 @@
-import {disableForm, activateForm, form} from './form.js';
-import {createOffers, Location} from './generate-data.js';
+/* global L:readonly */
+import {disableForm, enableForm} from './form.js';
 import {renderCard} from './render-card.js';
 
 const TokyoCenter = {
-  X: 35.6895,
-  Y: 139.69171,
+  LAT: 35.6895,
+  LNG: 139.69171,
+  COORDINATES_ACCURACY: 5,
 }
 
 // неактивное состояние страницы
+const userForm = document.querySelector('.ad-form');
 const mapFiltersForm = document.querySelector('.map__filters');
-disableForm(form, 'ad-form');
+disableForm(userForm, 'ad-form');
 disableForm(mapFiltersForm, 'map__filters');
 
-/* global L:readonly */
+document.querySelector('#map-canvas').style.zIndex = 0;
+
 const map = L.map('map-canvas')
   .on('load', () => {
     // активное состояние страницы
-    activateForm(form, 'ad-form');
-    activateForm(mapFiltersForm, 'map__filters');
+    enableForm(userForm, 'ad-form');
+    enableForm(mapFiltersForm, 'map__filters');
   })
   .setView({
-    lat: TokyoCenter.X,
-    lng: TokyoCenter.Y,
+    lat: TokyoCenter.LAT,
+    lng: TokyoCenter.LNG,
   }, 12);
 
 L.tileLayer(
@@ -40,57 +43,58 @@ const mainPinIcon = L.icon({
 
 const mainMarker = L.marker(
   {
-    lat: TokyoCenter.X,
-    lng: TokyoCenter.Y,
+    lat: TokyoCenter.LAT,
+    lng: TokyoCenter.LNG,
   },
   {
     draggable: true,
     icon: mainPinIcon,
+    zIndexOffset: 1000,
   },
 );
 
 mainMarker.addTo(map);
 
 // ввод адреса с помощью перемещения главного маркера
-const locationField = form.querySelector('#address');
-const defaultLocationX = TokyoCenter.X.toFixed(Location.ACCURACY);
-const defaultLocationY = TokyoCenter.Y.toFixed(Location.ACCURACY);
+const locationField = userForm.querySelector('#address');
+const defaultLocationX = TokyoCenter.LAT.toFixed(TokyoCenter.COORDINATES_ACCURACY);
+const defaultLocationY = TokyoCenter.LNG.toFixed(TokyoCenter.COORDINATES_ACCURACY);
 locationField.value = `${defaultLocationX}, ${defaultLocationY}`;
 
 mainMarker.on('moveend', (evt) => {
-  const locationX = evt.target.getLatLng().lat.toFixed(Location.ACCURACY);
-  const locationY = evt.target.getLatLng().lng.toFixed(Location.ACCURACY);
+  const locationX = evt.target.getLatLng().lat.toFixed(TokyoCenter.COORDINATES_ACCURACY);
+  const locationY = evt.target.getLatLng().lng.toFixed(TokyoCenter.COORDINATES_ACCURACY);
   locationField.value = `${locationX}, ${locationY}`;
 });
 
 // похожие объявления
-const offers = createOffers();
-offers.forEach((offer) => {
-  const icon = L.icon({
-    iconUrl: '../img/pin.svg',
-    iconSize: [40, 40],
-    iconAnchor: [20, 40],
-  });
+function addOffersOnMap(offers) {
+  offers.forEach((offer) => {
+    const icon = L.icon({
+      iconUrl: '../img/pin.svg',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+    });
 
-  const locationX = offer.location.x;
-  const locationY = offer.location.y;
-
-  const marker = L.marker(
-    {
-      lat: locationX,
-      lng: locationY,
-    },
-    {
-      icon: icon,
-    },
-  );
-
-  marker
-    .addTo(map)
-    .bindPopup(
-      renderCard(offer),
+    const marker = L.marker(
       {
-        keepInView: true,
+        lat: offer.location.lat,
+        lng: offer.location.lng,
+      },
+      {
+        icon: icon,
       },
     );
-});
+
+    marker
+      .addTo(map)
+      .bindPopup(
+        renderCard(offer),
+        {
+          keepInView: true,
+        },
+      );
+  });
+}
+
+export {addOffersOnMap, mainMarker, TokyoCenter};

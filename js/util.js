@@ -1,3 +1,5 @@
+import {mainMarker, TokyoCenter} from './map.js';
+
 function getRandomNumber(min, max, accuracy = 0) {
   if (isNaN(min) || isNaN(max) || isNaN(accuracy)) {
     throw new Error('All parameters must be numbers');
@@ -70,10 +72,26 @@ function getRandomSubArray(array) {
   return shuffle(array).slice(randomLength);
 }
 
+function resetPage() {
+  document.querySelector('.ad-form').reset();
+  document.querySelector('.map__filters').reset();
+
+  const defaultLocationX = TokyoCenter.LAT.toFixed(TokyoCenter.COORDINATES_ACCURACY);
+  const defaultLocationY = TokyoCenter.LNG.toFixed(TokyoCenter.COORDINATES_ACCURACY);
+  document.querySelector('#address').value = `${defaultLocationX}, ${defaultLocationY}`;
+  mainMarker.setLatLng({lat: TokyoCenter.LAT, lng: TokyoCenter.LNG});
+}
+
+function isEscapeKeydown(key) {
+  return key === ('Escape' || 'Esc');
+}
+
 export {
   getRandomNumber,
   makeArrayFromRange,
   addInitialZeros,
   getRandomArrayElement,
-  getRandomSubArray
+  getRandomSubArray,
+  resetPage,
+  isEscapeKeydown
 };
