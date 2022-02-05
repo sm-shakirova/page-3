@@ -93,7 +93,7 @@ form.onsubmit = (evt) => {
   evt.preventDefault();
 
   fetch(
-    'https://23.javascript.pages.academy/keksobookinghh',
+    'https://23.javascript.pages.academy/keksobooking',
     {
       method: 'POST',
       body: new FormData(evt.target),
