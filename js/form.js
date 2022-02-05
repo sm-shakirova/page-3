@@ -21,6 +21,7 @@ const timeOutSelect = form.querySelector('#timeout');
 const titleField = form.querySelector('#title');
 const roomsNumberSelect = form.querySelector('#room_number');
 const guestsNumberSelect = form.querySelector('#capacity');
+const resetButton = form.querySelector('.ad-form__reset');
 
 // функция для неактивного состояния формы
 function disableForm(form, className) {
@@ -92,7 +93,7 @@ form.onsubmit = (evt) => {
   evt.preventDefault();
 
   fetch(
-    'https://23.javascript.pages.academy/keksobooking',
+    'https://23.javascript.pages.academy/keksobookinghh',
     {
       method: 'POST',
       body: new FormData(evt.target),
@@ -104,7 +105,8 @@ form.onsubmit = (evt) => {
     .catch(() => showErrorPopup());
 };
 
-form.onreset = (evt) => {
+// сброс формы
+resetButton.onclick = (evt) => {
   evt.preventDefault();
   resetPage();
 };
