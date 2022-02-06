@@ -1,11 +1,13 @@
 import {getMinPrice} from './generate-data.js';
 import {resetPage} from './util.js';
 import {showSuccessPopup, showErrorPopup} from './popup.js';
+import {sendData} from './api.js'
 
 const TitleLength = {
   MIN: 30,
   MAX: 100,
 };
+
 const RoomsGuestCorrelation = {
   1: [1],
   2: [1, 2],
@@ -91,18 +93,11 @@ priceField.oninput = () => {
 // отправка формы
 form.onsubmit = (evt) => {
   evt.preventDefault();
-
-  fetch(
-    'https://23.javascript.pages.academy/keksobooking',
-    {
-      method: 'POST',
-      body: new FormData(evt.target),
-    },
-  ).then((response) => {
-    if (!response.ok) throw new Error('Не удалось отправить форму');
-  }).then(() => resetPage())
-    .then(() => showSuccessPopup())
-    .catch(() => showErrorPopup());
+  sendData(() => {
+    resetPage();
+    showSuccessPopup();
+  }, showErrorPopup,
+  new FormData(evt.target));
 };
 
 // сброс формы

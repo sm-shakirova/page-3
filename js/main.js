@@ -1,10 +1,16 @@
+/* global _:readonly */
 import './form.js';
-import {addOffersOnMap} from './map.js';
 import {getData} from './api.js';
+import {addOffersOnMap} from './map.js';
+import {setFiltersChange} from './filter.js';
 import './popup.js';
 
-const OFFERS_COUNT = 10;
+const RERENDER_DELAY = 500;
 
 getData((offers) => {
-  addOffersOnMap(offers.slice(0, OFFERS_COUNT));
+  addOffersOnMap(offers);
+  setFiltersChange(_.debounce(
+    () => addOffersOnMap(offers),
+    RERENDER_DELAY,
+  ));
 });

@@ -1,6 +1,9 @@
 /* global L:readonly */
 import {disableForm, enableForm} from './form.js';
 import {renderCard} from './render-card.js';
+import {checkOfferOnFilters} from './filter.js';
+
+const OFFERS_COUNT = 10;
 
 const TokyoCenter = {
   LAT: 35.6895,
@@ -68,33 +71,43 @@ mainMarker.on('moveend', (evt) => {
 });
 
 // похожие объявления
+const markers = L.layerGroup();
+
 function addOffersOnMap(offers) {
-  offers.forEach((offer) => {
-    const icon = L.icon({
-      iconUrl: '../img/pin.svg',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-    });
+  markers.clearLayers();
 
-    const marker = L.marker(
-      {
-        lat: offer.location.lat,
-        lng: offer.location.lng,
-      },
-      {
-        icon: icon,
-      },
-    );
+  offers
+    .filter(checkOfferOnFilters)
+    .slice(0, OFFERS_COUNT)
+    .forEach((offer) => {
+      const icon = L.icon({
+        iconUrl: '../img/pin.svg',
+        iconSize: [40, 40],
+        iconAnchor: [20, 40],
+      });
 
-    marker
-      .addTo(map)
-      .bindPopup(
-        renderCard(offer),
+      const marker = L.marker(
         {
-          keepInView: true,
+          lat: offer.location.lat,
+          lng: offer.location.lng,
+        },
+        {
+          icon: icon,
         },
       );
-  });
+
+      marker
+        .bindPopup(
+          renderCard(offer),
+          {
+            keepInView: true,
+          },
+        );
+
+      markers.addLayer(marker);
+    });
+
+  map.addLayer(markers);
 }
 
 export {addOffersOnMap, mainMarker, TokyoCenter};
