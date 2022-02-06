@@ -1,4 +1,8 @@
-import {mainMarker, TokyoCenter} from './map.js';
+/* global _:readonly */
+import {addOffersOnMap, mainMarker, TokyoCenter} from './map.js';
+import {getData} from './api.js';
+
+const RERENDER_DELAY = 500;
 
 function getRandomNumber(min, max, accuracy = 0) {
   if (isNaN(min) || isNaN(max) || isNaN(accuracy)) {
@@ -80,6 +84,11 @@ function resetPage() {
   const defaultLocationY = TokyoCenter.LNG.toFixed(TokyoCenter.COORDINATES_ACCURACY);
   document.querySelector('#address').value = `${defaultLocationX}, ${defaultLocationY}`;
   mainMarker.setLatLng({lat: TokyoCenter.LAT, lng: TokyoCenter.LNG});
+
+  getData((offers) => _.debounce(
+    () => addOffersOnMap(offers),
+    RERENDER_DELAY,
+  ));
 }
 
 function isEscapeKeydown(key) {

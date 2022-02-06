@@ -4,6 +4,7 @@ import {getData} from './api.js';
 import {addOffersOnMap} from './map.js';
 import {setFiltersChange} from './filter.js';
 import './popup.js';
+import './photo-preview.js';
 
 const RERENDER_DELAY = 500;
 
