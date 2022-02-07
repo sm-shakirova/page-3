@@ -1,4 +1,5 @@
-/* global _:readonly */
+import 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import './form.js';
 import {getData} from './api.js';
 import {addOffersOnMap} from './map.js';

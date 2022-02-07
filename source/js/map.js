@@ -1,4 +1,3 @@
-/* global L:readonly */
 import {disableForm, enableForm} from './form.js';
 import {renderCard} from './render-card.js';
 import {checkOfferOnFilters} from './filter.js';

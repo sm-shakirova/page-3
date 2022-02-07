@@ -1,7 +1,10 @@
+/* global _:readonly */
 import {getMinPrice} from './generate-data.js';
 import {resetPage} from './util.js';
 import {showSuccessPopup, showErrorPopup} from './popup.js';
 import {sendData} from './api.js'
+
+const RERENDER_DELAY = 700;
 
 const TitleLength = {
   MIN: 30,
@@ -64,7 +67,7 @@ checkGuestsNumber(options);
 roomsNumberSelect.onchange = () => checkGuestsNumber(options);
 
 // валидация
-titleField.oninput = () => {
+titleField.oninput = _.debounce(() => {
   const valueLength = titleField.value.length;
   if (valueLength < TitleLength.MIN) {
     titleField.setCustomValidity('Заголовок должен состоять минимум из 30 символов');
@@ -75,9 +78,9 @@ titleField.oninput = () => {
   }
 
   titleField.reportValidity();
-};
+}, RERENDER_DELAY);
 
-priceField.oninput = () => {
+priceField.oninput = _.debounce(() => {
   const value = Number(priceField.value);
   if (value < priceField.min) {
     priceField.setCustomValidity(`Цена не должна быть ниже ${priceField.min} ₽/ночь`);
@@ -88,7 +91,7 @@ priceField.oninput = () => {
   }
 
   priceField.reportValidity();
-};
+}, RERENDER_DELAY);
 
 // отправка формы
 form.onsubmit = (evt) => {
