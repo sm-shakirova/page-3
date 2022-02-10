@@ -1,10 +1,8 @@
 /* global _:readonly */
 import {getMinPrice} from './generate-data.js';
-import {resetPage} from './util.js';
-import {showSuccessPopup, showErrorPopup} from './popup.js';
-import {sendData} from './api.js'
+import {Photo} from './photo-preview.js';
 
-const RERENDER_DELAY = 700;
+const VALIDATION_DELAY = 700;
 
 const TitleLength = {
   MIN: 30,
@@ -18,95 +16,155 @@ const RoomsGuestCorrelation = {
   100: [0],
 };
 
-const form = document.querySelector('.ad-form');
-const typeSelect = form.querySelector('#type');
-const priceField = form.querySelector('#price');
-const timeInSelect = form.querySelector('#timein');
-const timeOutSelect = form.querySelector('#timeout');
-const titleField = form.querySelector('#title');
-const roomsNumberSelect = form.querySelector('#room_number');
-const guestsNumberSelect = form.querySelector('#capacity');
-const resetButton = form.querySelector('.ad-form__reset');
+class Form {
+  /**
+   * создает экземпляр класса Form
+   * @constructor
+   * @param {string} className - класс формы
+   */
+  constructor(className) {
+    this.htmlElement = document.querySelector(`.${className}`);
+    this.className = className;
 
-// функция для неактивного состояния формы
-function disableForm(form, className) {
-  form.classList.add(`${className}--disabled`);
-  for (let child of form.children) child.disabled = true;
-}
+    if (className === 'ad-form') {
+      this.typeSelect = this.htmlElement.querySelector('#type');
+      this.priceField = this.htmlElement.querySelector('#price');
+      this.checkInSelect = this.htmlElement.querySelector('#timein');
+      this.checkOutSelect = this.htmlElement.querySelector('#timeout');
+      this.titleField = this.htmlElement.querySelector('#title');
+      this.roomsNumberSelect = this.htmlElement.querySelector('#room_number');
+      this.guestsNumberSelect = this.htmlElement.querySelector('#capacity');
+      this.guestsNumberOptions = this.guestsNumberSelect.querySelectorAll('option');
+      this.resetButton = this.htmlElement.querySelector('.ad-form__reset');
 
-// функция для активного состояния формы
-function enableForm(form, className) {
-  form.classList.remove(`${className}--disabled`);
-  for (let child of form.children) child.disabled = false;
-}
+      this.avatar = new Photo(
+        'ad-form__field',
+        'ad-form-header__preview',
+        false);
 
-// зависимость стоимости от типа жилья
-typeSelect.onchange = () => {
-  priceField.placeholder = getMinPrice(typeSelect.value);
-  priceField.min = getMinPrice(typeSelect.value);
-};
-
-// синхронизация времени заезда и выезда
-timeInSelect.onchange = () => timeOutSelect.value = timeInSelect.value;
-timeOutSelect.onchange = () => timeInSelect.value = timeOutSelect.value;
-
-// синхронизация количества комнат и количества гостей
-function checkGuestsNumber(options) {
-  while (guestsNumberSelect.firstChild) guestsNumberSelect.removeChild(guestsNumberSelect.firstChild);
-  for (let option of options) {
-    const optionValue = Number(option.value);
-    const roomsNumber = Number(roomsNumberSelect.value);
-    if (RoomsGuestCorrelation[roomsNumber].includes(optionValue)) {
-      guestsNumberSelect.appendChild(option);
+      this.photo = new Photo(
+        'ad-form__upload',
+        'ad-form__photo',
+        true);
     }
   }
+
+  /**
+   * приводит форму в неактивное состояние
+   */
+  disable() {
+    this.htmlElement.classList.add(`${this.className}--disabled`);
+    for (let child of this.htmlElement.children) child.disabled = true;
+  }
+
+  /**
+   * приводит форму в активное состояние
+   */
+  enable() {
+    this.htmlElement.classList.remove(`${this.className}--disabled`);
+    for (let child of this.htmlElement.children) child.disabled = false;
+  }
+
+  /**
+   * устанавливает зависимость стоимости от типа жилья
+   */
+  setPriceConfigurations() {
+    this.typeSelect.onchange = () => {
+      this.priceField.placeholder = getMinPrice(this.typeSelect.value);
+      this.priceField.min = getMinPrice(this.typeSelect.value);
+    };
+  }
+
+  /**
+   * устанавливает зависимость количества гостей от количества комнат
+   */
+  setGuestsNumberConfigurations() {
+    this.guestsNumberSelect.innerHTML = '';
+    for (let option of this.guestsNumberOptions) {
+      const optionValue = Number(option.value);
+      const roomsNumber = Number(this.roomsNumberSelect.value);
+      if (RoomsGuestCorrelation[roomsNumber].includes(optionValue)) {
+        this.guestsNumberSelect.appendChild(option);
+      }
+    }
+    this.roomsNumberSelect.onchange = () => this.setGuestsNumberConfigurations();
+  }
+
+  /**
+   * синхронизирует время заезда и время выезда
+   */
+  setTimeConfigurations() {
+    this.checkInSelect.onchange = () => this.checkOutSelect.value = this.checkInSelect.value;
+    this.checkOutSelect.onchange = () => this.checkInSelect.value = this.checkOutSelect.value;
+  }
+
+  /**
+   * переопределяет действия при отправке формы
+   * @param {function} action - действие при отправке
+   */
+  onSubmit(action) {
+    this.htmlElement.onsubmit = (evt) => {
+      evt.preventDefault();
+      action(evt);
+    };
+  }
+
+  /**
+   * переопределяет действия при очистке формы
+   * @param {function} action - действие при нажатии на кнопку "очистить"
+   */
+  onReset(action) {
+    this.resetButton.onclick = (evt) => {
+      evt.preventDefault();
+      action()
+    };
+  }
+
+  /**
+   * проводит проверку длины заголовка при вводе и отправке
+   */
+  setTitleValidation() {
+    this.titleField.oninput = _.debounce(() => {
+      const valueLength = this.titleField.value.length;
+      if (valueLength < TitleLength.MIN) {
+        this.titleField.setCustomValidity('Заголовок должен состоять минимум из 30 символов');
+      } else if (valueLength > TitleLength.MAX) {
+        this.titleField.setCustomValidity('Заголовок не должен превышать 100 символов');
+      } else {
+        this.titleField.setCustomValidity('');
+      }
+      this.titleField.reportValidity();
+    }, VALIDATION_DELAY);
+
+    this.titleField.oninvalid = () => {
+      if (this.titleField.validity.valueMissing) {
+        this.titleField.setCustomValidity('Обязательное поле');
+      }
+    };
+  }
+
+  /**
+   * проводит проверку стоимости жилья при вводе и отправке
+   */
+  setPriceValidation() {
+    this.priceField.oninput = _.debounce(() => {
+      const value = Number(this.priceField.value);
+      if (value < this.priceField.min) {
+        this.priceField.setCustomValidity(`Цена не должна быть ниже ${this.priceField.min} ₽/ночь`);
+      } else if (value > this.priceField.max) {
+        this.priceField.setCustomValidity(`Цена не должна превышать ${this.priceField.max} ₽/ночь`);
+      } else {
+        this.priceField.setCustomValidity('');
+      }
+      this.priceField.reportValidity();
+    }, VALIDATION_DELAY);
+
+    this.priceField.oninvalid = () => {
+      if (this.priceField.validity.valueMissing) {
+        this.priceField.setCustomValidity('Обязательное поле');
+      }
+    };
+  }
 }
 
-const options = guestsNumberSelect.querySelectorAll('option');
-checkGuestsNumber(options);
-roomsNumberSelect.onchange = () => checkGuestsNumber(options);
-
-// валидация
-titleField.oninput = _.debounce(() => {
-  const valueLength = titleField.value.length;
-  if (valueLength < TitleLength.MIN) {
-    titleField.setCustomValidity('Заголовок должен состоять минимум из 30 символов');
-  } else if (valueLength > TitleLength.MAX) {
-    titleField.setCustomValidity('Заголовок не должен превышать 100 символов');
-  } else {
-    titleField.setCustomValidity('');
-  }
-
-  titleField.reportValidity();
-}, RERENDER_DELAY);
-
-priceField.oninput = _.debounce(() => {
-  const value = Number(priceField.value);
-  if (value < priceField.min) {
-    priceField.setCustomValidity(`Цена не должна быть ниже ${priceField.min} ₽/ночь`);
-  } else if (value > priceField.max) {
-    priceField.setCustomValidity(`Цена не должна превышать ${priceField.max} ₽/ночь`);
-  } else {
-    priceField.setCustomValidity('');
-  }
-
-  priceField.reportValidity();
-}, RERENDER_DELAY);
-
-// отправка формы
-form.onsubmit = (evt) => {
-  evt.preventDefault();
-  sendData(() => {
-    resetPage();
-    showSuccessPopup();
-  }, showErrorPopup,
-  new FormData(evt.target));
-};
-
-// сброс формы
-resetButton.onclick = (evt) => {
-  evt.preventDefault();
-  resetPage();
-};
-
-export {disableForm, enableForm};
+export {Form};

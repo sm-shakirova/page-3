@@ -1,112 +1,156 @@
-import {disableForm, enableForm} from './form.js';
-import {renderCard} from './render-card.js';
-import {checkOfferOnFilters} from './filter.js';
+/* global L:readonly */
+import {Card} from './render-card.js';
 
-const OFFERS_COUNT = 10;
+const ALERT_SHOW_TIME = 5000;
+const COORDINATES_ACCURACY = 5;
 
-const TokyoCenter = {
-  LAT: 35.6895,
-  LNG: 139.69171,
-  COORDINATES_ACCURACY: 5,
-}
+class Map {
+  /**
+   * создает карту
+   * @constructor
+   * @param {number} lat - координата центра карты по оси x
+   * @param {number} lng - координата центра карты по оси y
+   * @param onLoad - действие, выполняемое после загрузки
+   */
+  constructor(lat, lng, onLoad) {
+    this.htmlElement = document.querySelector('#map-canvas');
+    this.canvas = L.map('map-canvas')
+      .on('load', onLoad)
+      .setView({
+        lat: lat,
+        lng: lng,
+      }, 12);
 
-// неактивное состояние страницы
-const userForm = document.querySelector('.ad-form');
-const mapFiltersForm = document.querySelector('.map__filters');
-disableForm(userForm, 'ad-form');
-disableForm(mapFiltersForm, 'map__filters');
+    L.tileLayer(
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+      },
+    ).addTo(this.canvas);
 
-document.querySelector('#map-canvas').style.zIndex = 0;
+    this.markersGroup = L.layerGroup();
+  }
 
-const map = L.map('map-canvas')
-  .on('load', () => {
-    // активное состояние страницы
-    enableForm(userForm, 'ad-form');
-    enableForm(mapFiltersForm, 'map__filters');
-  })
-  .setView({
-    lat: TokyoCenter.LAT,
-    lng: TokyoCenter.LNG,
-  }, 12);
+  /**
+   * добавляет метку на карту
+   * @param marker
+   */
+  addMarker(marker) {
+    marker.layer.addTo(this.canvas);
+  }
 
-L.tileLayer(
-  'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-  {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  },
-).addTo(map);
-
-// главный маркер
-const mainPinIcon = L.icon({
-  iconUrl: '../img/main-pin.svg',
-  iconSize: [52, 52],
-  iconAnchor: [26, 52],
-});
-
-const mainMarker = L.marker(
-  {
-    lat: TokyoCenter.LAT,
-    lng: TokyoCenter.LNG,
-  },
-  {
-    draggable: true,
-    icon: mainPinIcon,
-    zIndexOffset: 1000,
-  },
-);
-
-mainMarker.addTo(map);
-
-// ввод адреса с помощью перемещения главного маркера
-const locationField = userForm.querySelector('#address');
-const defaultLocationX = TokyoCenter.LAT.toFixed(TokyoCenter.COORDINATES_ACCURACY);
-const defaultLocationY = TokyoCenter.LNG.toFixed(TokyoCenter.COORDINATES_ACCURACY);
-locationField.value = `${defaultLocationX}, ${defaultLocationY}`;
-
-mainMarker.on('moveend', (evt) => {
-  const locationX = evt.target.getLatLng().lat.toFixed(TokyoCenter.COORDINATES_ACCURACY);
-  const locationY = evt.target.getLatLng().lng.toFixed(TokyoCenter.COORDINATES_ACCURACY);
-  locationField.value = `${locationX}, ${locationY}`;
-});
-
-// похожие объявления
-const markers = L.layerGroup();
-
-function addOffersOnMap(offers) {
-  markers.clearLayers();
-
-  offers
-    .filter(checkOfferOnFilters)
-    .slice(0, OFFERS_COUNT)
-    .forEach((offer) => {
-      const icon = L.icon({
-        iconUrl: '../img/pin.svg',
-        iconSize: [40, 40],
-        iconAnchor: [20, 40],
-      });
-
-      const marker = L.marker(
-        {
-          lat: offer.location.lat,
-          lng: offer.location.lng,
-        },
-        {
-          icon: icon,
-        },
-      );
-
-      marker
-        .bindPopup(
-          renderCard(offer),
-          {
-            keepInView: true,
-          },
+  /**
+   * добавляет на карту группу меток с объявлениями
+   * @param offers - заранее отфильтрованный массив объявлений из базы данных
+   * @param {number} count - максимальное количество объявлений
+   * @param {string} iconUrl - ссылка на картинку для метки
+   * @param {number} iconSize - размер картинки
+   */
+  addOffers(offers, count, iconUrl, iconSize) {
+    this.markersGroup.clearLayers();
+    offers.slice(0, count)
+      .forEach((offer) => {
+        const marker = new Marker(
+          offer.location.lat,
+          offer.location.lng,
+          iconUrl,
+          iconSize,
         );
 
-      markers.addLayer(marker);
-    });
+        marker.bindPopup(
+          new Card(offer),
+        );
+        this.markersGroup.addLayer(marker.layer);
+      });
+    this.canvas.addLayer(this.markersGroup);
+  }
 
-  map.addLayer(markers);
+  /**
+   * показывает уведомление об ошибке
+   * @param {string} message - текст сообщения
+   */
+  showAlert(message) {
+    this.htmlElement.style.zIndex = 0;
+    const alert = document.createElement('div');
+
+    alert.style.zIndex = 1000;
+    alert.style.position = 'absolute';
+    alert.style.left = 0;
+    alert.style.top = 0;
+    alert.style.right = 0;
+    alert.style.padding = '10px 3px';
+    alert.style.fontSize = '20px';
+    alert.style.color = 'white';
+    alert.style.textAlign = 'center';
+    alert.style.backgroundColor = '#ef1616';
+    alert.textContent = message;
+
+    this.htmlElement.appendChild(alert);
+
+    setTimeout(() => {
+      alert.remove();
+    }, ALERT_SHOW_TIME);
+  }
 }
 
-export {addOffersOnMap, mainMarker, TokyoCenter};
+class Marker {
+  /**
+   * создает метку
+   * @param {number} lat - координата центра по оси x
+   * @param {number} lng - координата центра по оси y
+   * @param {string} iconUrl - ссылка на картинку
+   * @param {number} iconSize - размер картинки
+   */
+  constructor(lat, lng, iconUrl, iconSize) {
+    this.lat = lat;
+    this.lng = lng;
+
+    this.icon = L.icon({
+      iconUrl: iconUrl,
+      iconSize: [iconSize, iconSize],
+      iconAnchor: [iconSize/2, iconSize],
+    });
+
+    this.layer = L.marker(
+      {
+        lat: lat,
+        lng: lng,
+      },
+      {
+        icon: this.icon,
+      },
+    );
+  }
+
+  /**
+   * добавляет возможность ввода адреса с помощью передвижения метки
+   * @param input - поле для ввода координат
+   */
+  setInput(input) {
+    this.layer.dragging.enable();
+    const defaultLocationX = this.lat.toFixed(COORDINATES_ACCURACY);
+    const defaultLocationY = this.lat.toFixed(COORDINATES_ACCURACY);
+    input.value = `${defaultLocationX}, ${defaultLocationY}`;
+
+    this.layer.on('moveend', (evt) => {
+      const locationX = evt.target.getLatLng().lat.toFixed(COORDINATES_ACCURACY);
+      const locationY = evt.target.getLatLng().lng.toFixed(COORDINATES_ACCURACY);
+      input.value = `${locationX}, ${locationY}`;
+    });
+  }
+
+  /**
+   * привязывает карточку к метке на карте
+   * @param popup - отрисованная карточка объявления
+   */
+  bindPopup(popup) {
+    this.layer.bindPopup(
+      popup.htmlElement,
+      {
+        keepInView: true,
+      },
+    );
+  }
+}
+
+export {Map, Marker, COORDINATES_ACCURACY};

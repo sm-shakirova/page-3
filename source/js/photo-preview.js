@@ -1,35 +1,33 @@
 const FILE_TYPES = ['gif', 'jpg', 'jpeg', 'png'];
 
-const avatarInput = document.querySelector('.ad-form__field input[type=file]');
-const avatarPreview = document.querySelector('.ad-form-header__preview img');
-const housingPhotoInput = document.querySelector('.ad-form__upload input[type=file]');
-const housingPhotoContainer = document.querySelector('.ad-form__photo');
+class Photo {
+  constructor(inputClassName, previewClassName, createNewElement) {
+    this.input = document.querySelector(`.${inputClassName} input[type=file]`);
+    this.previewContainer = document.querySelector(`.${previewClassName}`);
 
-function onPhotoLoad(input, preview) {
-  const file = input.files[0];
-  const fileName = file.name.toLowerCase();
+    if (createNewElement) {
+      this.preview = document.createElement('img');
+      this.preview.style.width = '100%';
+      this.previewContainer.appendChild(this.preview);
+    } else {
+      this.preview = this.previewContainer.querySelector('img');
+    }
 
-  const matches = FILE_TYPES.some((type) => fileName.endsWith(type));
+    this.input.onchange = () => this._onChange();
+  }
 
-  if (matches) {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onload = () => {
-      preview.src = reader.result;
-    };
+  _onChange() {
+    const file = this.input.files[0];
+    const fileName = file.name.toLowerCase();
+    const matches = FILE_TYPES.some((type) => fileName.endsWith(type));
+    if (matches) {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        this.preview.src = reader.result;
+      };
+    }
   }
 }
 
-avatarInput.onchange = () => {
-  onPhotoLoad(avatarInput, avatarPreview);
-};
-
-housingPhotoInput.onchange = () => {
-  const housingPhotoPreview = document.createElement('img');
-  housingPhotoPreview.style.width = '100%';
-
-  onPhotoLoad(housingPhotoInput, housingPhotoPreview);
-
-  housingPhotoContainer.appendChild(housingPhotoPreview);
-}
+export {Photo};

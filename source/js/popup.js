@@ -1,43 +1,35 @@
-import {isEscapeKeydown} from './util.js';
+import {Util} from './util.js';
 
-const successTemplate = document.querySelector('#success').content.querySelector('.success');
-const errorTemplate = document.querySelector('#error').content.querySelector('.error');
+class Popup {
+  /**
+   * создает экземпляр класса Popup
+   * @constructor
+   * @param {string} status - success/error
+   */
+  constructor(status) {
+    this.template = document.querySelector(`#${status}`).content.querySelector(`.${status}`);
+    this.htmlElement = this.template.cloneNode(true);
+  }
 
-const successPopup = successTemplate.cloneNode(true);
-const errorPopup = errorTemplate.cloneNode(true);
+  /**
+   * показывает попап
+   */
+  show() {
+    document.body.appendChild(this.htmlElement);
+    document.addEventListener('keydown', (evt) => this._onEscapeKeydown(evt));
+    this.htmlElement.onclick = () => {
+      this.htmlElement.remove();
+      document.removeEventListener('keydown', (evt) => this._onEscapeKeydown(evt));
+    }
+  }
 
-function onSuccessPopupEscape(evt) {
-  if (isEscapeKeydown(evt.key)) {
-    evt.preventDefault();
-    successPopup.remove();
-    document.removeEventListener('keydown', onSuccessPopupEscape);
+  _onEscapeKeydown(evt) {
+    if (Util.isEscapeKeydown(evt.key)) {
+      evt.preventDefault();
+      this.htmlElement.remove();
+      document.removeEventListener('keydown', (evt) => this._onEscapeKeydown(evt));
+    }
   }
 }
 
-function onErrorPopupEscape(evt) {
-  if (isEscapeKeydown(evt.key)) {
-    evt.preventDefault();
-    errorPopup.remove();
-    document.removeEventListener('keydown', onErrorPopupEscape);
-  }
-}
-
-function showSuccessPopup() {
-  document.body.appendChild(successPopup);
-  successPopup.onclick = () => {
-    successPopup.remove();
-    document.removeEventListener('keydown', onSuccessPopupEscape);
-  }
-  document.addEventListener('keydown', onSuccessPopupEscape);
-}
-
-function showErrorPopup() {
-  document.body.appendChild(errorPopup);
-  errorPopup.onclick = () => {
-    errorPopup.remove();
-    document.removeEventListener('keydown', onErrorPopupEscape);
-  }
-  document.addEventListener('keydown', onErrorPopupEscape);
-}
-
-export {showSuccessPopup, showErrorPopup};
+export {Popup};
