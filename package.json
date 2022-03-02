@@ -2,7 +2,7 @@
   "name": "keksobooking",
   "version": "22.0.0",
   "private": true,
-  "description": "Личный проект «{{projectTitle}}» от HTML Academy",
+  "description": "Личный проект «Кексобукинг» от HTML Academy",
   "repository": {
     "type": "git",
     "url": "{{sshUrl}}"
@@ -11,6 +11,7 @@
     "url": "{{bugsUrl}}"
   },
   "devDependencies": {
+    "@babel/preset-env": "7.16.11",
     "browser-sync": "2.26.14",
     "css-loader": "6.6.0",
     "css-minimizer-webpack-plugin": "3.4.1",
@@ -28,8 +29,8 @@
   },
   "scripts": {
     "build": "webpack --mode production",
-    "start": "browser-sync start --server \"build/\" --no-ui --files \"source/js/*.js\"",
-    "test": "eslint source/js/"
+    "start": "browser-sync start --server \\\"build/\\\" --no-ui --files \\\"source/ts/*.ts\\\"",
+    "test": "eslint source/ts/"
   },
   "engines": {
     "node": ">=12.0.0"

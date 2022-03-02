@@ -4,7 +4,7 @@ const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const TerserPlugin = require("terser-webpack-plugin");
 
 module.exports = {
-  entry: './source/js/main.js',
+  entry: './source/ts/main.ts',
   devtool: 'source-map',
   output: {
     path: path.resolve(__dirname, 'build'),
@@ -18,6 +18,16 @@ module.exports = {
   ],
   module: {
     rules: [
+      {
+        test: /\.m?ts$/,
+        exclude: /node_modules/,
+        use: {
+          loader: "babel-loader",
+          options: {
+            presets: ['@babel/preset-env']
+          }
+        }
+      },
       {
         test: /\.css$/i,
         use: [MiniCssExtractPlugin.loader, "css-loader"],

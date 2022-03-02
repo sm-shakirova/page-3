@@ -2,25 +2,17 @@
 import 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
-import {Server} from './api.js';
-import {Page} from './util.js';
-import {Map, Marker} from './map.js';
-import {Form} from './form.js';
-import {Filter} from './filter.js';
-import {Popup} from './popup.js';
-
-const OFFERS_COUNT = 10;
-const RERENDER_DELAY = 500;
-
-const TokyoCenter = {
-  LAT: 35.6895,
-  LNG: 139.69171,
-};
+import {OFFERS_COUNT, RERENDER_DELAY, OfferDataType, TokyoCenter} from './data-details';
+import {Server} from './server';
+import {Page} from './page';
+import {Map, Marker} from './map';
+import {UserForm} from './user-form';
+import {FiltersForm} from './filters-form';
+import {Popup} from './popup';
 
 const server = new Server;
-const userForm = new Form('ad-form');
-const filtersForm = new Form('map__filters');
-const filter = new Filter(filtersForm);
+const userForm = new UserForm('ad-form');
+const filtersForm = new FiltersForm('map__filters');
 const page = new Page(filtersForm, userForm);
 const successPopup = new Popup('success');
 const errorPopup = new Popup('error');
@@ -28,22 +20,20 @@ const errorPopup = new Popup('error');
 page.disable();
 
 const map = new Map(
-  TokyoCenter.LAT,
-  TokyoCenter.LNG,
+  TokyoCenter.Lat,
+  TokyoCenter.Lng,
   () => userForm.enable(),
 );
 
 const mainMarker = new Marker(
-  TokyoCenter.LAT,
-  TokyoCenter.LNG,
+  TokyoCenter.Lat,
+  TokyoCenter.Lng,
   '../img/main-pin.svg',
   52,
 );
 
 map.addMarker(mainMarker);
-mainMarker.setInput(
-  userForm.htmlElement.querySelector('#address'),
-);
+if (userForm.locationField) mainMarker.setInput(userForm.locationField);
 
 userForm.setPriceConfigurations();
 userForm.setGuestsNumberConfigurations();
@@ -53,6 +43,7 @@ userForm.setPriceValidation();
 
 userForm.onSubmit(
   (evt) => server.sendData(
+    // @ts-ignore
     _.debounce(() => {
       page.reset(map, mainMarker);
       successPopup.show();
@@ -62,12 +53,13 @@ userForm.onSubmit(
   ),
 );
 
+// @ts-ignore
 userForm.onReset(_.debounce(() => {
   page.reset(map, mainMarker);
 }, RERENDER_DELAY));
 
 server.getData(
-  (offers) => {
+  (offers: OfferDataType[]) => {
     filtersForm.enable();
 
     map.addOffers(
@@ -77,9 +69,10 @@ server.getData(
       40,
     );
 
-    filter.onChange(_.debounce(() => {
+    // @ts-ignore
+    filtersForm.onChange(_.debounce(() => {
       map.addOffers(
-        offers.filter((offer) => filter.check(offer)),
+        offers.filter((offer) => filtersForm.check(offer)),
         OFFERS_COUNT,
         '../img/pin.svg',
         40,
